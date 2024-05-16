@@ -1,92 +1,144 @@
 import openai
 import os
+from dotenv import find_dotenv, load_dotenv
 import time
-import logging
 from datetime import datetime
-from dotenv import load_dotenv
 import requests
+import json
 
-# Load environment variables
 load_dotenv()
-
-# Configuration Constants
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 ELLABS_API_KEY = os.environ.get("ELLABS_API_KEY")
-
-# To wszystko potrzebne do Eleven labs no i ten key na górze
 
 RACHEL = "21m00Tcm4TlvDq8ikWAM"
 GLINDA = "z9fAnlkpzviPz146aGWa"
 ALICE = "Xb7hH8MSUJpSbSDYk0k2"
-VOICE_ID = ALICE
 
 CHUNK_SIZE = 1024
+VOICE_ID = ALICE
+
 OUTPUT_PATH = "output1.mp3"
 TTS_URL = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}/stream"
 
+client = openai.OpenAI()
+model = "gpt-3.5-turbo-16k"
 
-# Configure OpenAI client with API key
-OPENAI_MODEL = "gpt-3.5-turbo-16k"
-ASSISTANT_ID = "asst_Kwbvp3hjUNrG18BrgJpQimd7"
-THREAD_ID = "thread_I8uuNvB15WGyOUCM36ryvDiD"
+volume = 5
 
-openai.api_key = OPENAI_API_KEY
-
-def send_query_to_openai(client, thread_id, assistant_id, message):
-    client.beta.threads.messages.create(
-        thread_id=thread_id, role="user", content=message
-    )
-    run = client.beta.threads.runs.create(
-        thread_id=thread_id,
-        assistant_id=assistant_id,
-        instructions="Odpowiedź sformułuj w prosty i uprzejmy sposób. Ogranicz swoją odpowiedź do kilku zdań.",
-    )
-    return run.id
+def change_volume(volume_level: int):
+    volume = volume_level
+    print("Volume changed to: " + str(volume))
 
 
-def wait_for_run_completion(client, thread_id, run_id, sleep_interval=5):
-    while True:
-        try:
-            run = client.beta.threads.runs.retrieve(
-                thread_id=thread_id, run_id=run_id)
-            if run.completed_at:
-                elapsed_time = run.completed_at - run.created_at
-                formatted_elapsed_time = time.strftime(
-                    "%H:%M:%S", time.gmtime(elapsed_time)
-                )
-                print(f"Run completed in {formatted_elapsed_time}")
-                logging.info(f"Run completed in {formatted_elapsed_time}")
-                # Get messages here once Run is completed!
-                messages = client.beta.threads.messages.list(
-                    thread_id=thread_id)
-                last_message = messages.data[0]
-                response = last_message.content[0].text.value
-                print(f"Assistant Response: {response}")
-                return response
-        except Exception as e:
-            logging.error(f"An error occurred while retrieving the run: {e}")
-            break
-        logging.info("Waiting for run to complete...")
-        time.sleep(sleep_interval)
+headers = {
+    "Accept": "application/json",
+    "xi-api-key": ELLABS_API_KEY
+}
 
-
-def text_to_speech(text, tts_url, xi_api_key):
-    headers = {
-        "Accept": "application/json",
-        "xi-api-key": xi_api_key
+data = {
+    "text": '',  # Text you want to convert to speech
+    "model_id": "eleven_multilingual_v2",
+    "voice_settings": {
+        "stability": 0.8,
+        "similarity_boost": 0.8,
+        "style": 0.0,
+        "use_speaker_boost": True
     }
+}
 
-    data = {
-        "text": text, # Text you want to convert to speech
-        "model_id": "eleven_multilingual_v2",
-        "voice_settings": {
-            "stability": 0.8,
-            "similarity_boost": 0.5,
-            "style": 0.0,
-            "use_speaker_boost": True
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "change_volume",
+            "description": "Zmienia głośności mowy",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "volume_level": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 10,
+                        "default": 5,
+                        "description": "Docelowy poziom głośności (od 1 do 10) dla pliku lub rozmowy. Domyśna wartość to 5."
+                    }
+                },
+                "required": ["volume_level"]
+            }
         }
     }
+]
 
+available_functions = {
+    "change_volumSe": change_volume,
+}
+
+# assistant = client.beta.assistants.create(
+#   name="Health assistant",
+#   instructions="Jesteś oddanym osobistym asystentem zdrowia, biegłym w dostosowywaniu się do unikalnych potrzeb osób starszych. Twoje doświadczenie w opiece nad osobami starszymi zapewnia im uwagę i wsparcie, które zasługują. Staraj się formułować odpowiedzi w dwóch zdaniach i generuj odpowiedź tak, żeby była dostosowana do konwersji na mowę, przykładowo zamiast 2 napisz dwa lub dwóch w zależności od kontekstu zdania. Masz możliwość zmiany głośności za pomocą funkcji change_volume.",
+#   model="gpt-3.5-turbo-16k",
+#   tools = tools
+# )
+# assistant_id = assistant.id 
+assistant_id = "asst_gEXJ6BZ2ZLCoWXfXrXHV8HHX"
+
+
+def execute_function_call(function_name, arguments):
+    function = available_functions.get(function_name, None)
+    if function:
+        arguments = json.loads(arguments)
+        results = function(**arguments)
+    else:
+        results = f"Error: function {function_name} does not exist"
+    return results
+
+
+def create_message_and_run(assistant_id, query, thread=None):
+    if not thread:
+        thread = client.beta.threads.create()
+
+    message = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=query
+    )
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant_id
+    )
+    return run, thread
+
+
+def get_function_details(run):
+
+    print("\nrun.required_action\n", run.required_action)
+
+    function_name = run.required_action.submit_tool_outputs.tool_calls[0].function.name
+    arguments = run.required_action.submit_tool_outputs.tool_calls[0].function.arguments
+    function_id = run.required_action.submit_tool_outputs.tool_calls[0].id
+
+    print(f"function_name: {function_name} and arguments: {arguments}")
+
+    return function_name, arguments, function_id
+
+
+def submit_tool_outputs(run, thread, function_id, function_response):
+    run = client.beta.threads.runs.submit_tool_outputs(
+        thread_id=thread.id,
+        run_id=run.id,
+        tool_outputs=[
+            {
+                "tool_call_id": function_id,
+                "output": str(function_response),
+            }
+        ]
+    )
+    return run
+
+
+def text_to_speech(text, tts_url):
+
+    data["text"] = text
     response = requests.post(tts_url, headers=headers, json=data, stream=True)
     if response.ok:
         with open(OUTPUT_PATH, "wb") as f:
@@ -97,13 +149,40 @@ def text_to_speech(text, tts_url, xi_api_key):
         print(response.text)
 
 
+query = "Ile wody dziennie powinienem pić?"
+run, thread = create_message_and_run(assistant_id=assistant_id, query=query)
 
-if __name__ == "__main__":
-    client = openai.OpenAI()
-    message = "Ile kroków dziennie powinienem robić?"
-    run_id = send_query_to_openai(client, THREAD_ID, ASSISTANT_ID, message)
-    response_text = wait_for_run_completion(client, THREAD_ID, run_id)
-    if response_text:
-        text_to_speech(response_text, TTS_URL, ELLABS_API_KEY)
-    else:
-        print("No response received from assistant.")
+
+while True:
+    run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+    print("run status", run.status)
+
+    if run.status == "requires_action":
+
+        function_name, arguments, function_id = get_function_details(run)
+
+        function_response = execute_function_call(function_name, arguments)
+
+        run = submit_tool_outputs(run, thread, function_id, function_response)
+
+        continue
+    if run.status == "completed":
+
+        messages = client.beta.threads.messages.list(thread_id=thread.id)
+        latest_message = messages.data[0]
+        text = latest_message.content[0].text.value
+        print(text)
+        # if text:
+        #     text_to_speech(text, TTS_URL)
+        # else:
+        #     print("No response received from assistant.")
+
+        user_input = input()
+        if user_input == "STOP":
+            break
+
+        run, thread = create_message_and_run(
+            assistant_id=assistant_id, query=user_input, thread=thread)
+
+        continue
+    time.sleep(1)
