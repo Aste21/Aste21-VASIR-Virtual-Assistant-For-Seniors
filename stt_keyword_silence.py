@@ -4,20 +4,23 @@ import wave
 import speech_recognition as sr
 import whisper
 
-#options = {'language': 'pl'} jakby sie chcialo whispera w wykrywaniu keyword
+# options = {'language': 'pl'} jakby sie chcialo whispera w wykrywaniu keyword
+
 
 def is_keyword_detected(keyword):
     is_keyword = False
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
-    options = {'language': 'pl'}
+    options = {"language": "pl"}
     with microphone as source:
         recognizer.adjust_for_ambient_noise(source)
         print("Listening for the keyword...")
         while True:
             audio = recognizer.listen(source)
             try:
-                transcript = recognizer.recognize_google(audio)#recognize_whisper(audio, **options) #recognizer_google(audio)
+                transcript = recognizer.recognize_google(
+                    audio
+                )  # recognize_whisper(audio, **options) #recognizer_google(audio)
                 print("You said:", transcript)
                 if keyword.lower() in transcript.lower():
                     print("Keyword detected!")
@@ -28,7 +31,10 @@ def is_keyword_detected(keyword):
             except sr.RequestError as e:
                 print(f"Could not request results; {e}")
 
-def record_audio_with_silence_detection(output_filename="output.wav", silence_threshold=150, silence_duration=3):
+
+def record_audio_with_silence_detection(
+    output_filename="output.wav", silence_threshold=150, silence_duration=3
+):
     # Audio recording parameters
     FORMAT = pyaudio.paInt16  # 16-bit resolution
     CHANNELS = 1  # Mono channel
@@ -39,7 +45,9 @@ def record_audio_with_silence_detection(output_filename="output.wav", silence_th
     audio = pyaudio.PyAudio()
 
     # Start recording
-    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+    stream = audio.open(
+        format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK
+    )
 
     print("Recording...")
 
@@ -73,7 +81,9 @@ def record_audio_with_silence_detection(output_filename="output.wav", silence_th
                 silence_buffer.pop(0)
 
             # Check if all recent volumes in the buffer are below the silence threshold
-            if len(silence_buffer) == max_silent_chunks and all(vol < silence_threshold for vol in silence_buffer):
+            if len(silence_buffer) == max_silent_chunks and all(
+                vol < silence_threshold for vol in silence_buffer
+            ):
                 print("Silence detected. Stopping recording.")
                 break
     except Exception as e:
@@ -89,21 +99,23 @@ def record_audio_with_silence_detection(output_filename="output.wav", silence_th
     wf.setnchannels(CHANNELS)
     wf.setsampwidth(audio.get_sample_size(FORMAT))
     wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
+    wf.writeframes(b"".join(frames))
     wf.close()
 
     print(f"Recording saved as {output_filename}")
 
+
 def speech_to_text(filename):
-    #options = {'language': 'pl'}
+    # options = {'language': 'pl'}
     model = whisper.load_model("base")
-    result = model.transcribe(filename, fp16=False, language = 'Polish')# **options)
+    result = model.transcribe(filename, fp16=False, language="Polish")  # **options)
     return result["text"]
+
 
 if __name__ == "__main__":
     # Example usage:
-    #keyword = 'start'
-    #if (is_keyword_detected(keyword)):
+    # keyword = 'start'
+    # if (is_keyword_detected(keyword)):
     record_audio_with_silence_detection("output.wav", 150, 3)
     text = speech_to_text("output.wav")
     print(text)

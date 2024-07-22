@@ -2,9 +2,11 @@ import time
 from datetime import datetime
 from config import *
 from tools_constants import *
-from text_to_speech import *
+
+# from text_to_speech import *
 from assistant import *
-from speech_to_text import *
+
+# from speech_to_text import *
 
 volume = 5
 
@@ -39,8 +41,9 @@ def main():
                 print(text)
 
                 if text:
-                    path_to_mp3 = text_to_speech(text, TTS_URL)
-                    play_voice_message(path_to_mp3)
+                    # path_to_mp3 = text_to_speech(text, TTS_URL)
+                    # play_voice_message(path_to_mp3)
+                    print(text)
                 else:
                     print("No response received from assistant.")
 
@@ -48,8 +51,8 @@ def main():
                 if user_input.upper() == "STOP":
                     break
                 elif user_input.upper() == "V":
-                    record_audio("output.wav", duration=10, channels=1)
-                    user_input = speech_to_text("output.wav")
+                    # record_audio("output.wav", duration=10, channels=1)
+                    # user_input = speech_to_text("output.wav")
                     print(user_input)
 
                 run, thread = create_message_and_run(
