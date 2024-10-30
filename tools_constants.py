@@ -1,6 +1,5 @@
 from tools import *
 
-
 # Tool registration
 tools = [
     {
@@ -65,6 +64,61 @@ tools = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_event",
+            "description": "Dodaje wydarzenie z nazwa i data",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "event_name": {
+                        "type": "string",
+                        "description": "Nazwa lub tytul wydarzenia",
+                    },
+                    "event_date": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Data wydarzenia w formacie RRRR-MM-DD",
+                    },
+                },
+                "required": ["event_name", "event_date"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "set_monthly_budget",
+            "description": "Ustala budzet na specyficzny miesiac i rok",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "month": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "description": "Miesiąc budzetu reprezentowany jako liczba calkowita od 1 do 12",
+                    },
+                    "year": {
+                        "type": "integer",
+                        "description": "Rok",
+                    },
+                    "amount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Wysokość budzetu na dany miesiac",
+                    },
+                },
+                "required": ["month", "year", "amount"],
+            },
+        },
+    },
 ]
 
-available_functions = {"change_volume": change_volume, "add_medicine": add_medicine}
+available_functions = {
+    "change_volume": change_volume,
+    "add_medicine": add_medicine,
+    "add_event": add_event,
+    "set_monthly_budget": set_monthly_budget,
+}
