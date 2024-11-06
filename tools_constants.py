@@ -1,6 +1,5 @@
 from tools import *
 
-# Tool registration
 tools = [
     {
         "type": "function",
@@ -26,7 +25,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "add_medicine",
-            "description": """Dodaje lek do bazy danych.""",
+            "description": "Dodaje lek do bazy danych.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -114,6 +113,68 @@ tools = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_spending",
+            "description": "Rejestruje wydatki i odejmuje je od bieżącego budżetu",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "budget": {
+                        "type": "object",
+                        "properties": {
+                            "month": {"type": "integer"},
+                            "year": {"type": "integer"},
+                            "amount": {"type": "number"},
+                        },
+                        "description": "Budżet, z którego odejmowany jest wydatek",
+                    },
+                    "expense": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Kwota wydatku do odjęcia od budżetu",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Opis wydatku, np. jedzenie, paliwo",
+                    },
+                },
+                "required": ["budget", "expense", "description"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_income",
+            "description": "Rejestruje przychód i dodaje go do bieżącego budżetu",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "budget": {
+                        "type": "object",
+                        "properties": {
+                            "month": {"type": "integer"},
+                            "year": {"type": "integer"},
+                            "amount": {"type": "number"},
+                        },
+                        "description": "Budżet, do którego dodawany jest przychód",
+                    },
+                    "income": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "Kwota przychodu do dodania do budżetu",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Opis przychodu, np. pensja, zwrot podatku",
+                    },
+                },
+                "required": ["budget", "income", "description"],
+            },
+        },
+    },
 ]
 
 available_functions = {
@@ -121,4 +182,7 @@ available_functions = {
     "add_medicine": add_medicine,
     "add_event": add_event,
     "set_monthly_budget": set_monthly_budget,
+    "add_spending": add_spending,
+    "add_income": add_income,
 }
+

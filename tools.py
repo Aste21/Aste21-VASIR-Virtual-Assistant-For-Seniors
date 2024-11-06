@@ -30,6 +30,7 @@ def add_event(event_name: str, event_date: str):
     print(f"Dodano wydarzenie: {event}") 
     return event
 
+#notowanie budzetu na dany rok i miesiac 
 def set_monthly_budget(month: int, year: int, amount: float):
     if 1 <= month <= 12 and year > 0 and amount >= 0:
         budget = {"month": month, "year": year, "amount": amount}
@@ -37,3 +38,19 @@ def set_monthly_budget(month: int, year: int, amount: float):
         return budget
     else:
         raise ValueError("Niepoprawny miesiąc, data albo suma. Miesiąc powinien istnieć, rok i budzet powinny być wartością dodatnią.")
+    
+def add_spending(budget: dict, expense: float, description: str):
+    if 'amount' in budget and budget['amount'] >= expense >= 0:
+        budget['amount'] -= expense
+        print(f"Added spending: {description}, amount: {expense}. Remaining budget: {budget['amount']}")
+        return budget
+    else:
+        raise ValueError("Invalid expense amount or budget exceeded.")
+    
+def add_income(budget: dict, income: float, description: str):
+    if 'amount' in budget and income >= 0:
+        budget['amount'] += income
+        print(f"Added income: {description}, amount: {income}. New budget total: {budget['amount']}")
+        return budget
+    else:
+        raise ValueError("Invalid income amount.")
