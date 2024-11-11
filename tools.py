@@ -24,15 +24,38 @@ def add_medicine(
     medicine = Medicine(name, pills_count, when_to_take)
     print(medicine)
 
-#notowanie waznych dat - urodziny, wizyty itd.
-#Potem przydałoby się na podstawie zegara z zegarka generować powiadomienia/przypomnienia.
-def add_event(event_name: str, event_date: str, guest_list=None):
-    if guest_list is None:
-        guest_list = []
+def add_event(day: int, month: str, year: int, hour: int, minute: int, content: str, reminders: list = None):
+    # Default reminders if none are provided
+    if reminders is None:
+        reminders = [
+            {'days_before': 1, 'hours_before': 0, 'minutes_before': 0},
+            {'days_before': 0, 'hours_before': 2, 'minutes_before': 0}
+        ]
     
-    event = {"name": event_name, "date": event_date, "guest_list": guest_list}
-    print(f"Dodano wydarzenie: {event}")
+    # Create the event with the appropriate reminders
+    event = Event(day, month, year, hour, minute, content, reminders)
+    
     return event
+
+def create_shopping_list():
+    shopping_list = []
+    print(f"Stworzono listę zakupów")
+    return shopping_list
+
+def add_to_shopping_list(products, shopping_list):
+    for product in products:
+        shopping_list.append(product)
+        print(f"Dodano produkt do listy zakupów: {product}")
+    return shopping_list
+
+def delete_from_shopping_list(products, shopping_list):
+    for product in products:
+        if product in shopping_list:
+            shopping_list.remove(product)
+            print(f"Usunięto produkt z listy zakupów: {product}")
+        else:
+            print(f"Produkt {product} nie znajduje się na liście zakupów.")
+    return shopping_list
 
 #notowanie budzetu na dany rok i miesiac 
 def set_monthly_budget(month: int, year: int, amount: float):
