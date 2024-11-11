@@ -64,29 +64,119 @@ tools = [
         },
     },
     {
+    "type": "function",
+    "function": {
+        "name": "add_event",
+        "description": "Adds an event to the calendar.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "day": {
+                    "type": "integer",
+                    "description": "The day of the event (1-31)."
+                },
+                "month": {
+                    "type": "string",
+                    "description": "The month of the event (e.g., 'January', 'February')."
+                },
+                "year": {
+                    "type": "integer",
+                    "description": "The year of the event."
+                },
+                "hour": {
+                    "type": "integer",
+                    "description": "The hour of the event (0-23)."
+                },
+                "minute": {
+                    "type": "integer",
+                    "description": "The minute of the event (0-59)."
+                },
+                "content": {
+                    "type": "string",
+                    "description": "A description or content of the event."
+                },
+                "reminders": {
+                    "type": "array",
+                    "description": "An array of reminder details for the event.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "days_before": {
+                                "type": "integer",
+                                "description": "The number of days before the event to set the reminder."
+                            },
+                            "hours_before": {
+                                "type": "integer",
+                                "description": "The number of hours before the event to set the reminder."
+                            },
+                            "minutes_before": {
+                                "type": "integer",
+                                "description": "The number of minutes before the event to set the reminder."
+                            }
+                        },
+                        "required": ["days_before", "hours_before", "minutes_before"]
+                    }
+                }
+            },
+            "required": ["day", "month", "year", "hour", "minute", "content", "reminders"]
+        }
+    }
+},
+    {
         "type": "function",
         "function": {
-            "name": "add_event",
-            "description": "Dodaje wydarzenie z nazwą, datą i opcjonalną listą gości",
+            "name": "create_shopping_list",
+            "description": "Tworzy nową, pustą listę zakupów.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_to_shopping_list",
+            "description": "Dodaje listę produktów do istniejącej listy zakupów.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "event_name": {
-                        "type": "string",
-                        "description": "Nazwa lub tytuł wydarzenia",
-                    },
-                    "event_date": {
-                        "type": "string",
-                        "format": "date",
-                        "description": "Data wydarzenia w formacie RRRR-MM-DD",
-                    },
-                    "guest_list": {
+                    "products": {
                         "type": "array",
-                        "description": "Opcjonalna lista gości wydarzenia",
-                        "items": {"type": "string", "description": "Imię i nazwisko gościa"},
+                        "items": {"type": "string"},
+                        "description": "Lista produktów do dodania do listy zakupów",
                     },
+                    "shopping_list": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Istniejąca lista zakupów, do której dodawane są produkty",
+                    }
                 },
-                "required": ["event_name", "event_date"],
+                "required": ["products", "shopping_list"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_from_shopping_list",
+            "description": "Usuwa listę produktów z listy zakupów.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "products": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Lista nazw produktów do usunięcia z listy zakupów",
+                    },
+                    "shopping_list": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Aktualna lista zakupów, z której usuwane są produkty",
+                    }
+                },
+                "required": ["products", "shopping_list"],
             },
         },
     },
@@ -269,4 +359,7 @@ available_functions = {
     "add_recurring_spending": add_recurring_spending,
     "collect_memory_info": collect_memory_info,
     "memory_lane_quiz": memory_lane_quiz,
+    "create_shopping_list": create_shopping_list,
+    "add_to_shopping_list": add_to_shopping_list,
+    "delete_from_shopping_list": delete_from_shopping_list
 }
