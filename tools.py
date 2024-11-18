@@ -1,5 +1,7 @@
 from data_classes import *
 
+shopping_lists = {}
+
 # Function to change volume
 def change_volume(volume_level: int):
     global volume
@@ -37,25 +39,41 @@ def add_event(day: int, month: str, year: int, hour: int, minute: int, content: 
     
     return event
 
-def create_shopping_list():
-    shopping_list = []
-    print(f"Stworzono listę zakupów")
-    return shopping_list
+def create_shopping_list(name: str, products: list):
+    global shopping_lists
+    if name in shopping_lists:
+        raise ValueError(f"Lista zakupów o nazwie '{name}' już istnieje.")
+    shopping_lists[name] = products
+    print(f"Utworzono listę zakupów '{name}' z produktami: {products}")
 
-def add_to_shopping_list(products, shopping_list):
-    for product in products:
-        shopping_list.append(product)
-        print(f"Dodano produkt do listy zakupów: {product}")
-    return shopping_list
+def add_to_shopping_list(name: str, products: list):
+    global shopping_lists
+    if name not in shopping_lists:
+        raise ValueError(f"Lista zakupów o nazwie '{name}' nie istnieje.")
+    shopping_lists[name].extend(products)
+    print(f"Dodano produkty do listy zakupów '{name}': {products}. Obecna lista: {shopping_lists[name]}")
 
-def delete_from_shopping_list(products, shopping_list):
+def delete_from_shopping_list(name: str, products: list):
+    global shopping_lists
+    if name not in shopping_lists:
+        raise ValueError(f"Lista zakupów o nazwie '{name}' nie istnieje.")
     for product in products:
-        if product in shopping_list:
-            shopping_list.remove(product)
-            print(f"Usunięto produkt z listy zakupów: {product}")
+        if product in shopping_lists[name]:
+            shopping_lists[name].remove(product)
+            print(f"Usunięto produkt '{product}' z listy zakupów '{name}'.")
         else:
-            print(f"Produkt {product} nie znajduje się na liście zakupów.")
-    return shopping_list
+            print(f"Produkt '{product}' nie znajduje się na liście zakupów '{name}'.")
+    print(f"Zaktualizowana lista zakupów '{name}': {shopping_lists[name]}")
+
+def list_shopping_lists():
+    global shopping_lists
+    if not shopping_lists:
+        print("Brak dostępnych list zakupów.")
+    else:
+        for name, items in shopping_lists.items():
+            print(f"Lista zakupów '{name}': {items}")
+            
+
 
 #notowanie budzetu na dany rok i miesiac 
 def set_monthly_budget(month: int, year: int, amount: float):
@@ -85,17 +103,6 @@ def add_income(budget: dict, income: float, description: str):
     else:
         raise ValueError("Invalid income amount.")
     
-
-def add_recurring_spending(budget: dict, expense: float, description: str, recurrence: str):
-    if recurrence != "monthly":
-        raise ValueError("Currently, only monthly recurrence is supported.")
-
-    if 'amount' in budget and budget['amount'] >= expense >= 0:
-        budget['amount'] -= expense
-        print(f"Added recurring spending: {description}, amount: {expense}. Remaining budget: {budget['amount']}")
-        return budget
-    else:
-        raise ValueError("Invalid recurring expense amount or budget exceeded.")
   
 #potem tez by sie przydalo dodac te przypomnienia jak juz asystent bedzie mial dostep do zegara
 def add_recurring_spending(expense: float, description: str, recurrence: str):
@@ -106,41 +113,3 @@ def add_recurring_spending(expense: float, description: str, recurrence: str):
     print(f"Recurring spending noted: {recurring_expense}")
     return recurring_expense
 
-#pierwsza gra ktora imo bylaby spoko to memory lane quiz:
-#jak dziala: Asystent zadaje osobie pytania o jej przeszłość (dzieciństwo, ulubione #wspomnienia, miejsca, które odwiedziła, dawne hobby, itp.). Liczy punkty za kazda dobra odp.
-
-def collect_memory_info():
-    memories = []
-    print("Zbierzmy kilka wspomnień do Twojego quizu! Zadamy kilka pytań.")
-
-    while True:
-        question = input("Jakie pytanie chciałbyś dodać do quizu? (np. 'Jak miał na imię Twój pierwszy zwierzak?')\n")
-        answer = input(f"Jaka jest odpowiedź na to pytanie?\n")
-
-        memories.append({"question": question, "answer": answer})
-        print("Wspomnienie zapisane!\n")
-
-        more = input("Czy chcesz dodać kolejne wspomnienie? (tak/nie)\n").strip().lower()
-        if more != 'tak':
-            break
-
-    print("Wszystkie wspomnienia zostały zapisane! Możemy rozpocząć quiz w dowolnym momencie.")
-    return memories
-
-def memory_lane_quiz(memories=None):
-    if not memories:
-        print("Nie masz jeszcze zapisanych wspomnień do quizu. Zbierzmy je teraz!")
-        memories = collect_memory_info()
-
-    print("Witaj w quizie Ścieżka Wspomnień! Zobaczymy, jak wiele pięknych chwil uda Ci się przypomnieć.")
-    score = 0
-
-    for memory in memories:
-        user_answer = input(f"{memory['question']}\n")
-        if user_answer.strip().lower() == memory['answer'].strip().lower():
-            print("Świetnie! To naprawdę wspaniale, że pamiętasz!")
-            score += 1
-        else:
-            print(f"To nic, pamięć bywa kapryśna! Poprawna odpowiedź to: {memory['answer']}.")
-
-    print(f"Quiz zakończony! Twój wynik końcowy: {score} z {len(memories)}. Pamięć to piękna podróż, gratuluję udziału!")
